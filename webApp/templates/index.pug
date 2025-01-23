@@ -1,0 +1,49 @@
+doctype html
+html
+  head
+    title Visualisation Téléphones
+    link(rel="stylesheet", href="{{ url_for('static', filename='style.css') }}")
+    script(src="https://code.jquery.com/jquery-3.6.0.min.js")
+    script.
+      function refreshData() {
+        fetch('/data')
+          .then(response => response.json())
+          .then(data => {
+            // data = { "1": [...], "2": [... ] }
+            for (let bId in data) {
+              let phones = data[bId];
+              phones.forEach(phone => {
+                let elemId = `#phoneSquare-${bId}-${phone.tel_id}`;
+                let $elem = $(elemId);
+
+                if (phone.nbr_notif > 3) {
+                  $elem.css('background-color', 'orange');
+                } else if (phone.nbr_notif > 1) {
+                  $elem.css('background-color', 'red');
+                } else {
+                  $elem.css('background-color', 'green');
+                }
+                $elem.find('.notifCount').text(phone.nbr_notif);
+              });
+            }
+          });
+      }
+      setInterval(refreshData,1000 );
+
+  body
+    h1 Application de suivi des notifications
+
+    // On boucle sur noiseboxes.items(), qui renvoie [ (1, [...]), (2, [...]) ]
+    each item in noiseboxes.items()
+      - var boxId = item[0]
+      - var phones = item[1]
+
+      .box
+        h2 Box #{boxId}
+
+        .telephones
+          each phone in phones
+            // Important : interpolation Pug (#{...}) pour mélanger str et int
+            .phoneSquare(id="phoneSquare-#{boxId}-#{phone.tel_id}")
+              span= "Tel"
+              span.notifCount 0
